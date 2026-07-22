@@ -1,0 +1,120 @@
+<Window x:Class="GithubManager.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:GithubManager"
+        xmlns:vmConv="clr-namespace:GithubManager.Converters"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="GitHub 管理器" Height="760" Width="1100"
+        Background="{StaticResource BgBrush}"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResizeWithGrip">
+    <Window.DataContext>
+        <Binding Source="x:Static vm:App.MainVm" />
+    </Window.DataContext>
+    <Window.Resources>
+        <vmConv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        <vmConv:NullToVisibilityConverter x:Key="NullToVis"/>
+        <vmConv:ErrorToColorConverter x:Key="ErrorToColor"/>
+    </Window.Resources>
+
+    <!-- 自定义标题栏：去掉系统默认，用 WindowChrome 接管非客户区 -->
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome GlassFrameThickness="0"
+                            ResizeBorderThickness="4"
+                            CornerRadius="0"
+                            CaptionHeight="36"/>
+    </shell:WindowChrome.WindowChrome>
+
+    <DockPanel>
+        <!-- 自定义深色标题栏 -->
+        <Border DockPanel.Dock="Top" Height="36" Background="#2D2D2D"
+                MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 左侧标题文字 -->
+                <TextBlock Grid.Column="0"
+                           Text="GitHub 管理器"
+                           Foreground="{StaticResource TextBrush}"
+                           FontSize="13" FontWeight="SemiBold"
+                           VerticalAlignment="Center"
+                           Margin="12,0,0,0"/>
+
+                <!-- 右侧窗口控制按钮 -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <!-- 最小化 -->
+                    <Button x:Name="BtnMinimize"
+                            Style="{StaticResource TitleBarButton}"
+                            Click="BtnMinimize_Click"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Path Width="10" Height="10"
+                              Stroke="#ECECEC" StrokeThickness="1.2"
+                              Data="M 1 8 L 9 8"/>
+                    </Button>
+
+                    <!-- 最大化/还原 -->
+                    <Button x:Name="BtnMaximize"
+                            Style="{StaticResource TitleBarButton}"
+                            Click="BtnMaximize_Click"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Path x:Name="MaximizeIcon" Width="10" Height="10" Fill="Transparent"
+                              Stroke="#ECECEC" StrokeThickness="1"
+                              Data="M 0 2 L 0 10 L 8 10 L 8 2 Z"/>
+                    </Button>
+
+                    <!-- 关闭 -->
+                    <Button x:Name="BtnClose"
+                            Style="{StaticResource TitleBarCloseButton}"
+                            Click="BtnClose_Click"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Path Width="10" Height="10" Fill="Transparent"
+                              Stroke="#ECECEC" StrokeThickness="1.2"
+                              Data="M 1 1 L 9 9 M 9 1 L 1 9"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 顶部账号栏 -->
+        <Border DockPanel.Dock="Top" Background="{StaticResource PanelBrush}" Padding="12,8">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ComboBox x:Name="AccountCombo" Width="220" Margin="4,0"
+                              ItemsSource="{Binding Source={x:Static vm:App.AccountsVm}, Path=Accounts}"
+                              SelectedItem="{Binding Source={x:Static vm:App.AccountsVm}, Path=SelectedAccount, Mode=TwoWay}"
+                              DisplayMemberPath="Login"
+                              Background="#3C3C3C" Foreground="{StaticResource TextBrush}"/>
+                    <Button Content="切换" Click="SwitchAccount_Click" Margin="4,0"/>
+                    <Button Content="删除" Click="DeleteAccount_Click" Margin="4,0"/>
+                </StackPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="当前账号：" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding CurrentLogin}"
+                               Foreground="{StaticResource TextBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <Image Source="{Binding Path=CurrentAccount.AvatarUrl}" Width="28" Height="28" Margin="8,0,0,0"
+                           Visibility="{Binding Path=CurrentAccount, Converter={StaticResource NullToVis}}"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- 主体 Tab -->
+        <TabControl x:Name="MainTabs" Background="{StaticResource BgBrush}" BorderThickness="0"
+                    SelectionChanged="MainTabs_SelectionChanged">
+            <TabItem Header="账号管理">
+                <Frame x:Name="AccountsFrame" NavigationUIVisibility="Hidden"/>
+            </TabItem>
+            <TabItem Header="上传文件">
+                <Frame x:Name="UploadFrame" NavigationUIVisibility="Hidden"/>
+            </TabItem>
+            <TabItem Header="管理仓库文件">
+                <Frame x:Name="FilesFrame" NavigationUIVisibility="Hidden"/>
+            </TabItem>
+            <TabItem Header="发布 Release">
+                <Frame x:Name="ReleaseFrame" NavigationUIVisibility="Hidden"/>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>
